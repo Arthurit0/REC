@@ -19,7 +19,6 @@ POSSIBLE_EVENTS = [
     'BOSS',
 ]
 
-
 class Server:
     def __init__(self) -> None:
         self.score = 0
@@ -27,7 +26,7 @@ class Server:
         self.health = 100
         self.client = None
         self.connection = None
-
+    
     def send(self, msg):
         msg = '{};{};{}'.format(msg, self.health, self.score)
         self.client.send(bytes(msg, encoding='utf-8'))
@@ -38,6 +37,7 @@ class Server:
             return result
         else:
             raise Exception()
+            
 
     def handle_monster_attack(self):
         print('Monstro atrás das portas!')
@@ -57,8 +57,7 @@ class Server:
 
     def handle_chest(self):
         print('Baú encontrado!')
-        chest_value = choice(
-            [-20, -20, -10, -10, -50, 5, 5, 5, 10, 10, 50, 50, 100, 50, 10, 5])
+        chest_value = choice([-20, -20, -10, -10, -50, 5, 5, 5, 10, 10, 50, 50, 100, 50, 10, 5])
         self.send('TAKE_CHEST')
         response = str(self.receive(), 'utf-8')
 
@@ -68,7 +67,7 @@ class Server:
             self.send('CHEST_VALUE;{}'.format(chest_value))
         else:
             self.send('SKIPPING_CHEST')
-
+            
     def handle_nothing(self):
         print('E nada aconteceu...')
         self.send('NOTHING_HAPPENED')
@@ -109,10 +108,12 @@ class Server:
         port = 12000
         self.connection = socket(AF_INET, SOCK_STREAM)
         self.connection.bind(('', port))
-
         self.connection.listen(1)
-
         self.wait_client()
+
+    def close(self):
+        self.connection.close()
+        print("Jogo finalizado")
 
     def start_play(self):
         try:
@@ -145,7 +146,7 @@ class Server:
                     self.send('WIN;{}'.format(self.state_num))
                     self.client.close()
                     self.wait_client()
-
+                
         except Exception as e:
             self.client.close()
             self.connection.close()
@@ -154,4 +155,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    Server().start_server()
+   Server().start_server()
+   Server().close()
