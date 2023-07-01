@@ -32,7 +32,7 @@ def run_iperf_tcp_client(ip, port, duration, bitrate, cong_alg, json):
         command.append("-J")
 
     try:
-        with open(f"tcp_client.{format}", "w") as outfile:
+        with open(f"tcp_client_port_{port}.{format}", "w") as outfile:
             process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             for line in process.stdout:
@@ -62,7 +62,7 @@ def run_iperf_udp_client(ip, port, duration, bitrate, json):
         command.append("-J")
 
     try:
-        with open(f"udp_client.{format}", "w") as outfile:
+        with open(f"udp_client_port_{port}.{format}", "w") as outfile:
             process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             for line in process.stdout:
@@ -105,7 +105,7 @@ def main():
         )
 
         if json not in ["", "S", "N"]:
-            print("\nResposta inválida! Escolha entre 'S' ou 'N'")
+            print("Resposta inválida!", end=" ")
 
     if json == "":
         json = "S"
