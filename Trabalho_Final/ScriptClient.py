@@ -18,12 +18,7 @@ def run_iperf_tcp_client(ip, port, duration, bitrate, cong_alg, json):
     ]
 
     if bitrate != "":
-        command.append(
-            [
-                "-b",
-                f"{bitrate}Mb",
-            ]
-        )
+        command = command + ["-b", f"{bitrate}Mb"]
 
     format = "txt"
 
@@ -32,7 +27,7 @@ def run_iperf_tcp_client(ip, port, duration, bitrate, cong_alg, json):
         command.append("-J")
 
     try:
-        with open(f"tcp_client_port_{port}.{format}", "w") as outfile:
+        with open(f"./tcp_client_port_{port}.{format}", "w") as outfile:
             process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             for line in process.stdout:
@@ -62,7 +57,7 @@ def run_iperf_udp_client(ip, port, duration, bitrate, json):
         command.append("-J")
 
     try:
-        with open(f"udp_client_port_{port}.{format}", "w") as outfile:
+        with open(f"./udp_client_port_{port}.{format}", "w") as outfile:
             process = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             for line in process.stdout:
@@ -79,6 +74,7 @@ def main():
     tcp_port = input(
         "Digite a porta para o TCP (Pressione Enter para a porta padrão 5201): "
     )
+
     udp_port = input(
         "Digite a porta para o UDP (Pressione Enter para a porta padrão 5202): "
     )
