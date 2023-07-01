@@ -1,38 +1,35 @@
-import asyncio
+import subprocess
+import socket
 
-async def start_iperf_server(protocol):
-    command = f"iperf3 -s -p {port}"
-    port = port + 1
-    with open(f'{protocol}_server_output.txt', 'w') as f:
-        process = await asyncio.create_subprocess_exec(
-            *command.split(),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+
+def my_ip():
+    return socket.gethostbyname(socket.gethostname())
+
+
+def start_iperf_server(protocol, port):
+    # Replace "iperf3" with the full path to the executable.
+    command = ["/usr/bin/iperf3", "-s", "-p", str(port)]
+    with open(f"{protocol}_server_output.txt", "w") as f:
+        process = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT)
+
+        print(
+            f"Started iperf3 {protocol.upper()} server on IP {my_ip()} on port {port} [PID: {process.pid}]"
         )
-        print(f"Started iperf3 {protocol.upper()} server on port {port} [PID: {process.pid}]")
-        while True:
-            output = await process.stdout.readline()
-            if output == b'' and process.stdout.at_eof():
-                break
-            f.write(output.decode())
     return process
 
-async def main():
-    port = 5201
+
+def main():
+    tcp_server = start_iperf_server("tcp", port=5201)
+    udp_server = start_iperf_server("udp", port=5202)
+
+    try:
+        tcp_server.wait()
+        udp_server.wait()
+    except KeyboardInterrupt:
+        tcp_server.kill()
+        udp_server.kill()
+        print("Servers stopped by user")
 
 
-    # bitrate = input('Insira o bitrate para o servidor udp: ')
-    udp_server = await start_iperf_server('udp')
-    tcp_server = await start_iperf_server('tcp')
-
-    await asyncio.gather(
-        tcp_server.communicate(),
-        udp_server.communicate()
-    )
-
-try:
-    asyncio.run(main())
-except KeyboardInterrupt:
-    print("Servers stopped by user")
-    for child in asyncio.all_tasks():
-        child.cancel()
+if __name__ == "__main__":
+    main()
