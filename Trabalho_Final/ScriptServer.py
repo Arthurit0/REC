@@ -1,6 +1,5 @@
 import subprocess
 import socket
-import json
 import sys
 
 
