@@ -1,34 +1,69 @@
 import subprocess
 import socket
+import json
+import sys
 
 
 def my_ip():
     return socket.gethostbyname(socket.gethostname())
 
 
-def start_iperf_server(protocol, port):
+def start_iperf_server(port, num, json):
     # Replace "iperf3" with the full path to the executable.
-    command = ["/usr/bin/iperf3", "-s", "-p", str(port)]
-    with open(f"{protocol}_server_output.txt", "w") as f:
-        process = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT)
+    command = ["/usr/bin/iperf3", "-s", "-p", str(port), "m"]
 
-        print(
-            f"Started iperf3 {protocol.upper()} server on IP {my_ip()} on port {port} [PID: {process.pid}]"
-        )
+    format = "txt"
+
+    if json == "S":
+        format = "json"
+        command.append("-J")
+
+    try:
+        with open(f"port_{port}_server.{format}", "w") as f:
+            process = subprocess.Popen(command, stdout=f)
+
+            print(
+                f"Iniciado servidor iperf3 Nº {num} com IP {my_ip()}:{port} [PID: {process.pid}]"
+            )
+    except Exception as e:
+        print(f"Um erro ocorreu: {e}", file=sys.stderr)
+
     return process
 
 
 def main():
-    tcp_server = start_iperf_server("tcp", port=5201)
-    udp_server = start_iperf_server("udp", port=5202)
+    port = 5201
+    server_num = int(
+        input("Nº de servidores iperf3 que você deseja iniciar (Enter para 2): ")
+    )
+
+    json = False
+
+    while json not in ["", "S", "N"]:
+        json = input(
+            "Formato de exportação dos arquivos em JSON? (Enter ou 'S' para JSON, 'N' para TXT): "
+        )
+
+        if json not in ["", "S", "N"]:
+            print("\nResposta inválida! Escolha entre 'S' ou 'N'")
+
+    if json == "":
+        json = "S"
+
+    print()
+
+    iperf_servers = []
+
+    for i in range(server_num):
+        iperf_servers.append(start_iperf_server(port + i, i + 1, json))
 
     try:
-        tcp_server.wait()
-        udp_server.wait()
+        for server in iperf_servers:
+            server.wait()
     except KeyboardInterrupt:
-        tcp_server.kill()
-        udp_server.kill()
-        print("Servers stopped by user")
+        for server in iperf_servers:
+            server.kill()
+    print("Servidores encerrados pelo usuário!")
 
 
 if __name__ == "__main__":
