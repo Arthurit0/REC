@@ -33,9 +33,14 @@ def start_iperf_server(port, num, json):
 
 def main():
     port = 5201
-    server_num = int(
-        input("Nº de servidores iperf3 que você deseja iniciar (Enter para 2): ")
+    server_num = input(
+        "Nº de servidores iperf3 que você deseja iniciar (Enter para 2): "
     )
+
+    if server_num == "":
+        server_num = 2
+    else:
+        server_num = int(server_num)
 
     json = False
 
