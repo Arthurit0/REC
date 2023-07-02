@@ -18,7 +18,7 @@ def start_iperf_server(port, num, json):
         command.append("-J")
 
     try:
-        with open(f"./port_{port}_server.{format}", "w") as f:
+        with open(f"./server_port_{port}.{format}", "w") as f:
             process = subprocess.Popen(command, stdout=f)
 
             print(
