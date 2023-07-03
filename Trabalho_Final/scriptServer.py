@@ -1,6 +1,8 @@
 import subprocess
 import socket
 import sys
+import glob
+import os
 
 
 def my_ip():
@@ -55,6 +57,10 @@ def main():
         json = "S"
 
     print()
+
+    old_server_files = glob.glob('server*.json')
+    for file in old_server_files:
+        os.remove(file)
 
     iperf_servers = []
 
