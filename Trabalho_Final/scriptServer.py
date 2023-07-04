@@ -19,7 +19,7 @@ def my_ip():
 
 def start_iperf_server(port, num, json):
     # Replace "iperf3" with the full path to the executable.
-    command = ["/usr/bin/iperf3", "-s", "-p", str(port), "m"]
+    command = ["iperf3", "-s", "-p", str(port), "m"]
 
     format = "txt"
 
