@@ -28,6 +28,8 @@ def main():
     json_files = glob.glob(f'{type}*.json')
 
     metrics_data = {}
+    all_metrics = ['bytes', 'bits_per_second', 'retransmits',
+                   'max_snd_cwnd', 'jitter_ms', 'lost_packets', 'packets']
 
     for file in json_files:
         print(f'Lendo e processando arquivo: {file}')
@@ -35,33 +37,41 @@ def main():
         with open(file) as json_file:
             data = json.load(json_file)
 
-        # Verifica se o protocolo é UDP
-        is_udp = data['start']['test_start']['protocol'].lower() == 'udp'
+            if file not in metrics_data:
+                metrics_data[file] = {}
+                for metric in all_metrics:
+                    metrics_data[file][metric] = []
 
-        if file not in metrics_data:
-            metrics_data[file] = {'indice': [], 'bps': []}
-
-        for i, interval in enumerate(data['intervals']):
-            for stream in interval['streams']:
-                metrics_data[file]['indice'].append(
-                    i + (offset if is_udp else 0))
-                metrics_data[file]['bps'].append(stream['bits_per_second'])
+            for i, interval in enumerate(data['intervals']):
+                for stream in interval['streams']:
+                    for metric in all_metrics:
+                        if metric in stream:
+                            metrics_data[file][metric].append(stream[metric])
 
     for filename, data in metrics_data.items():
-        port = filename.replace(f'{type}_port_', '').replace('.json', '')
+        port = filename.replace(f'port_', '').replace('.json', '')
 
         with open(filename) as json_file:
-            protocol = json.load(json_file)[
-                'start']['test_start']['protocol'].upper()
+            json_data = json.load(json_file)
+            protocol = json_data['start']['test_start']['protocol'].upper()
 
-        legend_label = f'{type} - porta - {port} ({protocol})'
+            cong_alg = json_data.get('end', []).get(
+                'receiver_tcp_congestion', '')
 
-        x_axis = data['indice']
-        y_axis = data['bps']
+        for metric in all_metrics:
+            if data[metric]:
+                legend_label = f'{type} - porta {port} ({protocol}{", " + cong_alg if cong_alg else ""})'
 
-        plt.plot(x_axis, y_axis, label=f'{legend_label}')
-    plt.title("Comparação de bytes por segundo")
-    plt.legend()
+                x_axis = range(len(data[metric]))
+                y_axis = data[metric]
+
+                if protocol == 'UDP':
+                    x_axis = [x + offset for x in x_axis]
+
+                plt.figure(metric)
+                plt.plot(x_axis, y_axis, label=f'{legend_label}')
+                plt.title(f"Comparação de {metric}")
+                plt.legend()
     plt.show()
 
 
